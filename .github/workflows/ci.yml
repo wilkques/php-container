@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+  # PHP 5.3 is the package's declared floor (composer.json: "php": ">=5.3");
+  # 5.6 is the last PHP 5.x release and the most widely deployed one. No
+  # version of PHPUnit runs on either (PHPUnit 9 requires >=7.3, and the
+  # test suite itself uses `: void` return types PHPUnit 9's own abstract
+  # methods require, which need PHP >=7.1), so these jobs only prove src/
+  # parses cleanly there — via plain `docker run` (not GitHub's `container:`
+  # job option), since the 5.3 image's glibc predates the Node.js runtime
+  # the Actions runner injects into job containers and would fail to
+  # bootstrap actions/checkout.
+  syntax-check:
+    name: "Syntax check (PHP ${{ matrix.php }})"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '5.3'
+            image: cespi/php-5.3:cli
+          - php: '5.6'
+            image: php:5.6-cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint every file under src/ against PHP ${{ matrix.php }}
+        run: |
+          docker run --rm -v "$PWD":/app -w /app ${{ matrix.image }} sh -c '
+            status=0
+            for f in $(find src -name "*.php" | sort); do
+              echo "== $f =="
+              php -l "$f" || status=1
+            done
+            exit $status
+          '
+
+  test:
+    name: "PHPUnit (PHP ${{ matrix.php }})"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.0', '7.4', '8.0', '8.1', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run test suite
+        run: vendor/bin/phpunit -c phpunit.xml
