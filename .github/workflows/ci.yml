@@ -7,14 +7,14 @@ on:
 
 jobs:
   # PHP 5.3 is the package's declared floor (composer.json: "php": ">=5.3");
-  # 5.6 is the last PHP 5.x release and the most widely deployed one. No
-  # version of PHPUnit runs on either (PHPUnit 9 requires >=7.3, and the
-  # test suite itself uses `: void` return types PHPUnit 9's own abstract
-  # methods require, which need PHP >=7.1), so these jobs only prove src/
-  # parses cleanly there — via plain `docker run` (not GitHub's `container:`
-  # job option), since the 5.3 image's glibc predates the Node.js runtime
-  # the Actions runner injects into job containers and would fail to
-  # bootstrap actions/checkout.
+  # 5.6 is the last PHP 5.x release and the most widely deployed one; 7.0 is
+  # included here too because PHPUnit 9.6 (this package's require-dev)
+  # requires PHP >=7.3, so `composer install` cannot even resolve on 7.0 —
+  # see the "test" job below, which starts at 7.4. These three therefore
+  # only prove src/ parses cleanly, via plain `docker run` (not GitHub's
+  # `container:` job option), since the 5.3 image's glibc predates the
+  # Node.js runtime the Actions runner injects into job containers and
+  # would fail to bootstrap actions/checkout.
   syntax-check:
     name: "Syntax check (PHP ${{ matrix.php }})"
     runs-on: ubuntu-latest
@@ -26,6 +26,8 @@ jobs:
             image: cespi/php-5.3:cli
           - php: '5.6'
             image: php:5.6-cli
+          - php: '7.0'
+            image: php:7.0-cli
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +48,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['7.0', '7.4', '8.0', '8.1', '8.2', '8.3']
+        # 7.4 is the floor here, not 7.0: PHPUnit 9.6 (require-dev) needs
+        # PHP >=7.3, so anything below that can only be syntax-checked
+        # above, not run through composer install + phpunit.
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5', ]
     steps:
       - uses: actions/checkout@v4
 
