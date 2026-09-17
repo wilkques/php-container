@@ -237,6 +237,72 @@ had an undetected cycle that happened to "work" by never actually being
 resolved, upgrading may surface it for the first time as a catchable
 exception instead of a fatal crash.
 
+> **Caveat:** cycle detection only tracks class names as they enter
+> `build()`. A binding closure that calls back into the container for its
+> **own** abstract — e.g. `bind($abstract, function ($c) use ($abstract) {
+> return $c->make($abstract); })` — is not tracked the same way, because a
+> Closure `$concrete` never goes through `build()`'s class-name check. In
+> 4.x this exact pattern happened to work by accident, because `bind()` ran
+> the closure *before* recording the binding (see #1), so the inner
+> `make($abstract)` call fell through to plain autowiring instead of
+> re-entering the same closure. In 5.0's correct, lazy binding order, the
+> binding is recorded first, so that inner `make($abstract)` call re-enters
+> the very same closure — infinite recursion, ending in a C-stack overflow
+> (a segfault, with no PHP-level error message at all) rather than a clean
+> `CircularDependencyException`. If you have a binding closure that resolves
+> its own abstract as a "no custom factory given, just autowire it"
+> fallback, resolve and cache it explicitly instead:
+>
+> ```php
+> // Don't: self-referential factory, recurses forever under 5.0.
+> $container->scoped($abstract, function ($c) use ($abstract) {
+>     return $c->make($abstract);
+> });
+> $c->make($abstract);
+>
+> // Do: resolve once, then cache explicitly — no closure indirection.
+> $instance = $container->make($abstract);
+> $container->instance($abstract, $instance);
+> ```
+
+### 10. Binding closures no longer autowire their own parameters by type hint
+
+In 4.x, `bind()`/`singleton()`/`scoped()` invoked their factory through the
+same reflection-based autowiring `call()` uses, so a factory closure's own
+parameters were inspected and autowired **by type hint**:
+
+```php
+// 4.x: $config was autowired — the container built a fresh Config
+// (resolving its own Filesystem dependency in turn) and passed it in.
+container()->singleton(Config::class, function (Config $config) {
+    return $config->boot();
+});
+```
+
+In 5.0, binding closures are always invoked as `$concrete($container,
+$parameters)` — matching `Illuminate\Container\Container`. The closure's
+first parameter receives **the container itself**, regardless of what it's
+type-hinted as; if the hint doesn't accept a `Container`, you get a
+`TypeError` instead of an autowired instance:
+
+```
+TypeError: {closure}(): Argument #1 ($config) must be of type Config,
+Wilkques\Container\Container given
+```
+
+Rewrite any 4.x-era binding closure whose parameter is type-hinted as
+anything other than the container to resolve/construct that dependency
+explicitly inside the closure body:
+
+```php
+// 5.0
+container()->singleton(Config::class, function ($container) {
+    $filesystem = $container->make(Filesystem::class);
+
+    return (new Config($filesystem))->boot();
+});
+```
+
 ### Other changes verified, not expected to break anything
 
 - **Contextual binding by type name is now supported.** 4.x's

@@ -65,6 +65,25 @@ interfaces if the real `psr/container` package isn't already installed (see
     when the abstract is resolved, and it is invoked **fresh on every single
     `make()`/`get()` call**, returning a new instance each time.
 
+    The closure is always called as `$concrete($container, $parameters)` —
+    its first parameter receives **the container itself**, no matter what
+    (if anything) it's type-hinted as. It is *not* autowired by type hint;
+    resolve any dependencies you need explicitly inside the closure body.
+    This applies identically to [`singleton()`](#3-singleton) and
+    [`scoped()`](#4-scoped) below, since both are built on top of `bind()`:
+
+    ```php
+    container()->bind(\Your\Class\Config::class, function ($container) {
+        $filesystem = $container->make(\Your\Class\Filesystem::class);
+
+        return new \Your\Class\Config($filesystem);
+    });
+    ```
+
+    > **Behavior change from v4:** in 4.x, a binding closure's own parameters
+    > were autowired by type hint (the same mechanism `call()` uses). See
+    > [UPGRADING.md](UPGRADING.md#10-binding-closures-no-longer-autowire-their-own-parameters-by-type-hint).
+
     > **Behavior change from v4:** in 4.x, `bind()` behaved like a singleton
     > — the factory ran once and the same instance was cached and returned
     > forever after. In 5.0, `bind()` is a true transient/factory binding. If

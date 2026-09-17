@@ -61,6 +61,24 @@ composer require wilkques/container
     執行,而且**每一次 `make()`/`get()` 呼叫都會重新執行一次**,每次都回傳
     一個全新的實例。
 
+    這個閉包永遠是以 `$concrete($container, $parameters)` 的方式被呼叫——
+    第一個參數永遠拿到**容器本身**,不管你把它的型別提示寫成什麼(甚至沒寫)。
+    它**不會**依型別提示自動裝配;你想要的依賴要自己在閉包裡明確解析。
+    這個規則對下面的 [`singleton()`](#3-singleton) 與 [`scoped()`](#4-scoped)
+    也完全一樣,因為它們底層都是建立在 `bind()` 之上:
+
+    ```php
+    container()->bind(\Your\Class\Config::class, function ($container) {
+        $filesystem = $container->make(\Your\Class\Filesystem::class);
+
+        return new \Your\Class\Config($filesystem);
+    });
+    ```
+
+    > **與 v4 的行為差異:** 在 4.x,binding closure 自己的參數會依型別提示
+    > 自動裝配(跟 `call()` 用的是同一套機制)。詳見
+    > [UPGRADING.md](UPGRADING.md#10-binding-closures-no-longer-autowire-their-own-parameters-by-type-hint)。
+
     > **與 v4 的行為差異:** 在 4.x,`bind()` 的行為像 singleton——工廠只
     > 執行一次,之後永遠回傳同一個快取的實例。在 5.0,`bind()` 是真正的
     > transient/工廠綁定。如果你想要舊版那種快取行為,請改用
