@@ -1472,7 +1472,7 @@ class Container implements \Psr\Container\ContainerInterface
      *
      * @return \Wilkques\Container\Container|null
      */
-    public static function setInstance(Container $container = null)
+    public static function setInstance($container = null)
     {
         return static::$instance = $container;
     }

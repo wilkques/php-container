@@ -81,7 +81,7 @@ class BindingTest extends TestCase
         $collaborator = new class(null) {
             public $dep;
 
-            public function __construct(ContractInterface $dep = null)
+            public function __construct(?ContractInterface $dep = null)
             {
                 $this->dep = $dep;
             }

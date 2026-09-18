@@ -10,7 +10,7 @@ class SelfHint
     /**
      * @param self|null $x
      */
-    public function __construct(self $x = null)
+    public function __construct(?self $x = null)
     {
         $this->x = $x;
     }
