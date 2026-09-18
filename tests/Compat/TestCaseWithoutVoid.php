@@ -1,0 +1,181 @@
+<?php
+
+namespace Wilkques\Container\Tests;
+
+use PHPUnit\Framework\TestCase as BaseTestCase;
+use Wilkques\Container\Container;
+
+abstract class TestCase extends BaseTestCase
+{
+    /** @var \Wilkques\Container\Container */
+    protected $container;
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $this->resetContainerSingleton();
+
+        // Always a *fresh* container instance per test, never the static
+        // singleton, so tests can never leak state into one another.
+        $this->container = new Container;
+
+        $this->additionalSetUp();
+    }
+
+    protected function tearDown()
+    {
+        $this->additionalTearDown();
+
+        $this->resetContainerSingleton();
+
+        parent::tearDown();
+    }
+
+    /**
+     * Hook for subclasses that need extra per-test setup (e.g. CallTest
+     * resetting fixture counters). Deliberately NOT named setUp(): PHPUnit
+     * enforces return-type covariance on setUp()/tearDown() overrides, and
+     * that return type is compile-time syntax that differs across the
+     * PHPUnit versions this suite runs under (see tests/bootstrap.php) — a
+     * plain, un-typed hook method has no such constraint, so subclasses
+     * needing it stay a single file instead of needing their own
+     * With/WithoutVoid split.
+     */
+    protected function additionalSetUp()
+    {
+    }
+
+    /**
+     * @see additionalSetUp()
+     */
+    protected function additionalTearDown()
+    {
+    }
+
+    /**
+     * Reset the Container's static singleton between tests.
+     *
+     * TODO(WP6): use Container::setInstance(null) once it exists.
+     */
+    protected function resetContainerSingleton()
+    {
+        if (method_exists(Container::class, 'setInstance')) {
+            Container::setInstance(null);
+
+            return;
+        }
+
+        $reflection = new \ReflectionClass(Container::class);
+
+        $property = $reflection->getProperty('instance');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
+    }
+
+    /**
+     * Read a protected/private property off of an object (or a static
+     * property off of a class) via reflection.
+     *
+     * @param object|string $objectOrClass
+     * @param string        $property
+     *
+     * @return mixed
+     */
+    protected function peek($objectOrClass, $property)
+    {
+        $reflection = new \ReflectionClass($objectOrClass);
+
+        $prop = $reflection->getProperty($property);
+        $prop->setAccessible(true);
+
+        if (is_object($objectOrClass)) {
+            return $prop->getValue($objectOrClass);
+        }
+
+        return $prop->getValue();
+    }
+
+    /**
+     * Invoke a protected/private method on an object via reflection.
+     *
+     * @param object $object
+     * @param string $method
+     * @param array  $args
+     *
+     * @return mixed
+     */
+    protected function invoke($object, $method, array $args = array())
+    {
+        $reflection = new \ReflectionClass($object);
+
+        $m = $reflection->getMethod($method);
+        $m->setAccessible(true);
+
+        return $m->invokeArgs($object, $args);
+    }
+
+    /**
+     * PHPUnit assertion/expectation method names that have been renamed
+     * across the major versions this suite runs under (see
+     * tests/bootstrap.php re: "phpunit/phpunit": "*"). Unlike setUp()'s
+     * return type, these are plain method calls, not syntax — a runtime
+     * method_exists() check is enough, no With/WithoutVoid-style file
+     * split needed.
+     *
+     * @param string $needle
+     * @param string $haystack
+     * @param string $message
+     *
+     * @return void
+     */
+    protected function assertStringContainsStringCompat($needle, $haystack, $message = '')
+    {
+        if (method_exists($this, 'assertStringContainsString')) {
+            // PHPUnit >= 7.5
+            $this->assertStringContainsString($needle, $haystack, $message);
+
+            return;
+        }
+
+        // PHPUnit < 7.5: assertContains() still accepted a string haystack.
+        $this->assertContains($needle, $haystack, $message);
+    }
+
+    /**
+     * @param string $regex
+     *
+     * @return void
+     */
+    protected function expectExceptionMessageMatchesCompat($regex)
+    {
+        if (method_exists($this, 'expectExceptionMessageMatches')) {
+            // PHPUnit >= 8.4
+            $this->expectExceptionMessageMatches($regex);
+
+            return;
+        }
+
+        // PHPUnit < 8.4, renamed from expectExceptionMessageRegExp().
+        $this->expectExceptionMessageRegExp($regex);
+    }
+
+    /**
+     * @param mixed  $value
+     * @param string $message
+     *
+     * @return void
+     */
+    protected function assertIsArrayCompat($value, $message = '')
+    {
+        if (method_exists($this, 'assertIsArray')) {
+            // PHPUnit >= 7.5
+            $this->assertIsArray($value, $message);
+
+            return;
+        }
+
+        // PHPUnit < 7.5, renamed from assertInternalType('array', ...).
+        $this->assertInternalType('array', $value, $message);
+    }
+}

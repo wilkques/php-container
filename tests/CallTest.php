@@ -11,10 +11,8 @@ use Wilkques\Container\Tests\Fixtures\Invokable;
  */
 class CallTest extends TestCase
 {
-    protected function setUp(): void
+    protected function additionalSetUp()
     {
-        parent::setUp();
-
         Counter::$count = 0;
         Invokable::$calls = 0;
     }

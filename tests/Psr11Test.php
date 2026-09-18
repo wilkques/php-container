@@ -55,7 +55,7 @@ class Psr11Test extends TestCase
             $this->fail('A bound-but-throwing factory must not surface as NotFoundExceptionInterface: ' . get_class($e));
         } catch (ContainerExceptionInterface $e) {
             $this->assertNotInstanceOf(NotFoundExceptionInterface::class, $e);
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             $this->fail('Expected a ContainerExceptionInterface, got ' . get_class($e) . ': ' . $e->getMessage());
         }
     }

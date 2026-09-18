@@ -41,20 +41,29 @@ class AutowiringTest extends TestCase
         $previousLimit = ini_get('memory_limit');
         ini_set('memory_limit', '32M');
 
+        // No `finally` (PHP 5.5+ only; composer.json's floor is 5.3) — the
+        // catch-all below stands in for it, restoring memory_limit on any
+        // throw, expected or not, before the final line covers the
+        // (unreachable in practice, since expectException() demands one)
+        // no-throw path.
         try {
             $this->expectException(CircularDependencyException::class);
 
             try {
                 $this->container->make(CircularA::class);
             } catch (CircularDependencyException $e) {
-                $this->assertStringContainsString(CircularA::class, $e->getMessage());
-                $this->assertStringContainsString(CircularB::class, $e->getMessage());
+                $this->assertStringContainsStringCompat(CircularA::class, $e->getMessage());
+                $this->assertStringContainsStringCompat(CircularB::class, $e->getMessage());
 
                 throw $e;
             }
-        } finally {
+        } catch (\Exception $e) {
             ini_set('memory_limit', $previousLimit);
+
+            throw $e;
         }
+
+        ini_set('memory_limit', $previousLimit);
     }
 
     /**
@@ -68,13 +77,18 @@ class AutowiringTest extends TestCase
         $previousLimit = ini_get('memory_limit');
         ini_set('memory_limit', '32M');
 
+        // See testMutualCircularDependencyThrows() re: no `finally`.
         try {
             $this->expectException(CircularDependencyException::class);
 
             $this->container->make(SelfCircular::class);
-        } finally {
+        } catch (\Exception $e) {
             ini_set('memory_limit', $previousLimit);
+
+            throw $e;
         }
+
+        ini_set('memory_limit', $previousLimit);
     }
 
     /** B8: `parent` type-hint resolves to an instance of the parent class. */
@@ -88,6 +102,10 @@ class AutowiringTest extends TestCase
     /** B8: `self` type-hint is resolvable (with a default of null, per the fixture). */
     public function testSelfTypeHintIsResolvable()
     {
+        if (PHP_VERSION_ID < 70100) {
+            $this->markTestSkipped('Fixtures\\SelfHint uses a nullable `?self` param, which requires PHP 7.1');
+        }
+
         $result = $this->container->make(SelfHint::class);
 
         $this->assertInstanceOf(SelfHint::class, $result);
@@ -97,7 +115,7 @@ class AutowiringTest extends TestCase
     public function testUnboundInterfaceThrowsNotInstantiable()
     {
         $this->expectException(BindingResolutionException::class);
-        $this->expectExceptionMessageMatches('/not instantiable/i');
+        $this->expectExceptionMessageMatchesCompat('/not instantiable/i');
 
         $this->container->make(ContractInterface::class);
     }
@@ -106,7 +124,7 @@ class AutowiringTest extends TestCase
     public function testUnboundAbstractClassThrowsNotInstantiable()
     {
         $this->expectException(BindingResolutionException::class);
-        $this->expectExceptionMessageMatches('/not instantiable/i');
+        $this->expectExceptionMessageMatchesCompat('/not instantiable/i');
 
         $this->container->make(SomeAbstract::class);
     }
@@ -115,7 +133,7 @@ class AutowiringTest extends TestCase
     public function testMissingClassThrowsDoesNotExist()
     {
         $this->expectException(BindingResolutionException::class);
-        $this->expectExceptionMessageMatches('/does not exist/i');
+        $this->expectExceptionMessageMatchesCompat('/does not exist/i');
 
         $this->container->make('Totally\\Missing\\ClassName');
     }
@@ -124,7 +142,7 @@ class AutowiringTest extends TestCase
     public function testNestedFailureReportsBuildChain()
     {
         $this->expectException(BindingResolutionException::class);
-        $this->expectExceptionMessageMatches('/\[.*ChainA.*\].*->.*\[.*ChainB.*\]/s');
+        $this->expectExceptionMessageMatchesCompat('/\[.*ChainA.*\].*->.*\[.*ChainB.*\]/s');
 
         $this->container->make(ChainA::class);
     }
@@ -163,9 +181,11 @@ class AutowiringTest extends TestCase
     /** Optional-param semantics: `?int $x` with no default resolves to null. */
     public function testNullableScalarWithNoDefaultResolvesToNull()
     {
-        $result = $this->container->call(function (?int $x) {
-            return $x;
-        });
+        if (PHP_VERSION_ID < 70100) {
+            $this->markTestSkipped('Nullable scalar type hints require PHP 7.1');
+        }
+
+        $result = $this->container->call(\Wilkques\Container\Tests\Fixtures\Php71\NullableScalarCallable::get());
 
         $this->assertNull($result);
     }

@@ -76,18 +76,13 @@ class BindingTest extends TestCase
     /** A3: a class type-hinting the interface receives the bound concrete implementation. */
     public function testTypeHintedInterfaceIsAutowiredFromBinding()
     {
+        if (PHP_VERSION_ID < 70100) {
+            $this->markTestSkipped('Fixtures\\Php71\\NullableInterfaceCollaborator uses a nullable class type hint, which requires PHP 7.1');
+        }
+
         $this->container->bind(ContractInterface::class, ConcreteImplementation::class);
 
-        $collaborator = new class(null) {
-            public $dep;
-
-            public function __construct(?ContractInterface $dep = null)
-            {
-                $this->dep = $dep;
-            }
-        };
-
-        $resolved = $this->container->make(get_class($collaborator));
+        $resolved = $this->container->make(\Wilkques\Container\Tests\Fixtures\Php71\NullableInterfaceCollaborator::class);
 
         $this->assertInstanceOf(ConcreteImplementation::class, $resolved->dep);
     }

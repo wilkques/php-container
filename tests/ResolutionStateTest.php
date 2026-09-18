@@ -16,7 +16,7 @@ class ResolutionStateTest extends TestCase
     {
         try {
             $this->container->make(ThrowingCtor::class);
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             // expected
         }
 

@@ -24,7 +24,7 @@ class TagTest extends TestCase
 
         $tagged = $this->container->tagged('deps');
 
-        $this->assertIsArray($tagged, 'tagged() must return a plain array, not a Generator');
+        $this->assertIsArrayCompat($tagged, 'tagged() must return a plain array, not a Generator');
         $this->assertCount(2, $tagged);
 
         foreach ($tagged as $item) {
@@ -36,7 +36,7 @@ class TagTest extends TestCase
     {
         $tagged = $this->container->tagged('nope');
 
-        $this->assertIsArray($tagged);
+        $this->assertIsArrayCompat($tagged);
         $this->assertCount(0, $tagged);
     }
 }
