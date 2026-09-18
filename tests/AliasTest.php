@@ -24,7 +24,7 @@ class AliasTest extends TestCase
 
     public function testSelfAliasThrowsLogicException()
     {
-        $this->expectException(\LogicException::class);
+        $this->expectExceptionCompat('LogicException');
 
         $this->container->alias('a', 'a');
     }

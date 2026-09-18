@@ -21,7 +21,7 @@ class FlushTest extends TestCase
     {
         $this->container->flush();
 
-        $resolved = $this->container->make(Container::class);
+        $resolved = $this->container->make('Wilkques\Container\Container');
 
         $this->assertSame($this->container, $resolved);
     }

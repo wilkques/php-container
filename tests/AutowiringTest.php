@@ -47,13 +47,13 @@ class AutowiringTest extends TestCase
         // (unreachable in practice, since expectException() demands one)
         // no-throw path.
         try {
-            $this->expectException(CircularDependencyException::class);
+            $this->expectExceptionCompat('Wilkques\Container\Exceptions\CircularDependencyException');
 
             try {
-                $this->container->make(CircularA::class);
+                $this->container->make('Wilkques\Container\Tests\Fixtures\CircularA');
             } catch (CircularDependencyException $e) {
-                $this->assertStringContainsStringCompat(CircularA::class, $e->getMessage());
-                $this->assertStringContainsStringCompat(CircularB::class, $e->getMessage());
+                $this->assertStringContainsStringCompat('Wilkques\Container\Tests\Fixtures\CircularA', $e->getMessage());
+                $this->assertStringContainsStringCompat('Wilkques\Container\Tests\Fixtures\CircularB', $e->getMessage());
 
                 throw $e;
             }
@@ -79,9 +79,9 @@ class AutowiringTest extends TestCase
 
         // See testMutualCircularDependencyThrows() re: no `finally`.
         try {
-            $this->expectException(CircularDependencyException::class);
+            $this->expectExceptionCompat('Wilkques\Container\Exceptions\CircularDependencyException');
 
-            $this->container->make(SelfCircular::class);
+            $this->container->make('Wilkques\Container\Tests\Fixtures\SelfCircular');
         } catch (\Exception $e) {
             ini_set('memory_limit', $previousLimit);
 
@@ -94,9 +94,9 @@ class AutowiringTest extends TestCase
     /** B8: `parent` type-hint resolves to an instance of the parent class. */
     public function testParentTypeHintInjectsParentClassInstance()
     {
-        $child = $this->container->make(Child::class);
+        $child = $this->container->make('Wilkques\Container\Tests\Fixtures\Child');
 
-        $this->assertInstanceOf(Base::class, $child->p);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Base', $child->p);
     }
 
     /** B8: `self` type-hint is resolvable (with a default of null, per the fixture). */
@@ -106,33 +106,33 @@ class AutowiringTest extends TestCase
             $this->markTestSkipped('Fixtures\\SelfHint uses a nullable `?self` param, which requires PHP 7.1');
         }
 
-        $result = $this->container->make(SelfHint::class);
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\SelfHint');
 
-        $this->assertInstanceOf(SelfHint::class, $result);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\SelfHint', $result);
     }
 
     /** B9: an unbound interface cannot be instantiated. */
     public function testUnboundInterfaceThrowsNotInstantiable()
     {
-        $this->expectException(BindingResolutionException::class);
+        $this->expectExceptionCompat('Wilkques\Container\Exceptions\BindingResolutionException');
         $this->expectExceptionMessageMatchesCompat('/not instantiable/i');
 
-        $this->container->make(ContractInterface::class);
+        $this->container->make('Wilkques\Container\Tests\Fixtures\ContractInterface');
     }
 
     /** B9: an unbound abstract class cannot be instantiated. */
     public function testUnboundAbstractClassThrowsNotInstantiable()
     {
-        $this->expectException(BindingResolutionException::class);
+        $this->expectExceptionCompat('Wilkques\Container\Exceptions\BindingResolutionException');
         $this->expectExceptionMessageMatchesCompat('/not instantiable/i');
 
-        $this->container->make(SomeAbstract::class);
+        $this->container->make('Wilkques\Container\Tests\Fixtures\SomeAbstract');
     }
 
     /** B9: a class that doesn't exist at all gives a distinct error message. */
     public function testMissingClassThrowsDoesNotExist()
     {
-        $this->expectException(BindingResolutionException::class);
+        $this->expectExceptionCompat('Wilkques\Container\Exceptions\BindingResolutionException');
         $this->expectExceptionMessageMatchesCompat('/does not exist/i');
 
         $this->container->make('Totally\\Missing\\ClassName');
@@ -141,10 +141,10 @@ class AutowiringTest extends TestCase
     /** B9: a nested resolution failure reports the build chain, e.g. "[ChainA] -> [ChainB]". */
     public function testNestedFailureReportsBuildChain()
     {
-        $this->expectException(BindingResolutionException::class);
+        $this->expectExceptionCompat('Wilkques\Container\Exceptions\BindingResolutionException');
         $this->expectExceptionMessageMatchesCompat('/\[.*ChainA.*\].*->.*\[.*ChainB.*\]/s');
 
-        $this->container->make(ChainA::class);
+        $this->container->make('Wilkques\Container\Tests\Fixtures\ChainA');
     }
 
     /** N10 (PHP 8 only): nullable + union ctor params resolve per their real semantics. */
@@ -154,9 +154,9 @@ class AutowiringTest extends TestCase
             $this->markTestSkipped('Union types require PHP 8');
         }
 
-        $result = $this->container->make(\Wilkques\Container\Tests\Fixtures\Php8\UnionCtor::class);
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Php8\UnionCtor');
 
-        $this->assertInstanceOf(Dep::class, $result->d);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Dep', $result->d);
         $this->assertSame(138, $result->u);
     }
 
@@ -167,13 +167,13 @@ class AutowiringTest extends TestCase
             $this->markTestSkipped('Union types require PHP 8');
         }
 
-        $result = $this->container->make(\Wilkques\Container\Tests\Fixtures\Php8\FooBarUnion::class);
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Php8\FooBarUnion');
 
         $this->assertThat(
             $result->x,
             $this->logicalOr(
-                $this->isInstanceOf(\Wilkques\Container\Tests\Fixtures\Foo::class),
-                $this->isInstanceOf(Dep::class)
+                $this->isInstanceOf('Wilkques\Container\Tests\Fixtures\Foo'),
+                $this->isInstanceOf('Wilkques\Container\Tests\Fixtures\Dep')
             )
         );
     }
@@ -198,8 +198,8 @@ class AutowiringTest extends TestCase
      */
     public function testUntypedParamWithNoDefaultThrows()
     {
-        $this->expectException(BindingResolutionException::class);
+        $this->expectExceptionCompat('Wilkques\Container\Exceptions\BindingResolutionException');
 
-        $this->container->make(UntypedNoDefault::class);
+        $this->container->make('Wilkques\Container\Tests\Fixtures\UntypedNoDefault');
     }
 }

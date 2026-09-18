@@ -21,8 +21,8 @@ class ExtendTest extends TestCase
 
         $result = $this->container->make('thing');
 
-        $this->assertInstanceOf(\stdClass::class, $result);
-        $this->assertInstanceOf(Dep::class, $result->inner);
+        $this->assertInstanceOf('stdClass', $result);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Dep', $result->inner);
     }
 
     public function testExtendAfterResolutionOnASingletonAppliesImmediately()
@@ -43,7 +43,7 @@ class ExtendTest extends TestCase
 
         $result = $this->container->make('thing');
 
-        $this->assertInstanceOf(\stdClass::class, $result);
+        $this->assertInstanceOf('stdClass', $result);
         $this->assertSame($original, $result->inner);
     }
 

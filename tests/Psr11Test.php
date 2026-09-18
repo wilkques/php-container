@@ -17,7 +17,7 @@ class Psr11Test extends TestCase
 
     public function testContainerImplementsPsr11ContainerInterface()
     {
-        $this->assertInstanceOf(ContainerInterface::class, $this->container);
+        $this->assertInstanceOf('Psr\Container\ContainerInterface', $this->container);
     }
 
     public function testHasReturnsTrueForBoundAbstract()
@@ -36,7 +36,7 @@ class Psr11Test extends TestCase
 
     public function testGetOnUnboundUnknownIdThrowsNotFound()
     {
-        $this->expectException(NotFoundExceptionInterface::class);
+        $this->expectExceptionCompat('Psr\Container\NotFoundExceptionInterface');
 
         $this->container->get('Totally\\Unknown\\Id');
     }
@@ -54,7 +54,7 @@ class Psr11Test extends TestCase
         } catch (NotFoundExceptionInterface $e) {
             $this->fail('A bound-but-throwing factory must not surface as NotFoundExceptionInterface: ' . get_class($e));
         } catch (ContainerExceptionInterface $e) {
-            $this->assertNotInstanceOf(NotFoundExceptionInterface::class, $e);
+            $this->assertNotInstanceOf('Psr\Container\NotFoundExceptionInterface', $e);
         } catch (\Exception $e) {
             $this->fail('Expected a ContainerExceptionInterface, got ' . get_class($e) . ': ' . $e->getMessage());
         }

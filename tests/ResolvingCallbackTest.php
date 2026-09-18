@@ -14,16 +14,16 @@ class ResolvingCallbackTest extends TestCase
             $seen[] = get_class($instance);
         });
 
-        $this->container->make(Dep::class);
+        $this->container->make('Wilkques\Container\Tests\Fixtures\Dep');
 
-        $this->assertSame(array(Dep::class), $seen);
+        $this->assertSame(array('Wilkques\Container\Tests\Fixtures\Dep'), $seen);
     }
 
     public function testPerAbstractResolvingCallbackFiresOnlyForThatAbstract()
     {
         $seen = array();
 
-        $this->container->resolving(Dep::class, function ($instance, $c) use (&$seen) {
+        $this->container->resolving('Wilkques\Container\Tests\Fixtures\Dep', function ($instance, $c) use (&$seen) {
             $seen[] = 'dep';
         });
 
@@ -31,7 +31,7 @@ class ResolvingCallbackTest extends TestCase
             $seen[] = 'something-else';
         });
 
-        $this->container->make(Dep::class);
+        $this->container->make('Wilkques\Container\Tests\Fixtures\Dep');
 
         $this->assertSame(array('dep'), $seen);
     }
@@ -44,11 +44,11 @@ class ResolvingCallbackTest extends TestCase
             $seen[] = 'global-after';
         });
 
-        $this->container->afterResolving(Dep::class, function ($instance, $c) use (&$seen) {
+        $this->container->afterResolving('Wilkques\Container\Tests\Fixtures\Dep', function ($instance, $c) use (&$seen) {
             $seen[] = 'dep-after';
         });
 
-        $this->container->make(Dep::class);
+        $this->container->make('Wilkques\Container\Tests\Fixtures\Dep');
 
         $this->assertSame(array('global-after', 'dep-after'), $seen);
     }
@@ -65,7 +65,7 @@ class ResolvingCallbackTest extends TestCase
             $order[] = 'afterResolving';
         });
 
-        $this->container->make(Dep::class);
+        $this->container->make('Wilkques\Container\Tests\Fixtures\Dep');
 
         $this->assertSame(array('resolving', 'afterResolving'), $order);
     }

@@ -15,7 +15,7 @@ class ResolutionStateTest extends TestCase
     public function testBuildStackAndWithAreClearedAfterAThrowingBuild()
     {
         try {
-            $this->container->make(ThrowingCtor::class);
+            $this->container->make('Wilkques\Container\Tests\Fixtures\ThrowingCtor');
         } catch (\Exception $e) {
             // expected
         }

@@ -16,10 +16,10 @@ class VariadicTest extends TestCase
             $this->markTestSkipped('Fixtures\\Collector uses a variadic ctor param, which requires PHP 5.6');
         }
 
-        $result = $this->container->make(Collector::class);
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Collector');
 
         $this->assertCount(1, $result->foos);
-        $this->assertInstanceOf(Foo::class, $result->foos[0]);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Foo', $result->foos[0]);
     }
 
     public function testContextualGiveArrayFeedsAllVariadicSlots()
@@ -31,9 +31,9 @@ class VariadicTest extends TestCase
         $a = new Foo;
         $b = new Foo;
 
-        $this->container->when(Collector::class)->needs('$foos')->give(array($a, $b));
+        $this->container->when('Wilkques\Container\Tests\Fixtures\Collector')->needs('$foos')->give(array($a, $b));
 
-        $result = $this->container->make(Collector::class);
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Collector');
 
         $this->assertSame(array($a, $b), $result->foos);
     }
@@ -47,7 +47,7 @@ class VariadicTest extends TestCase
         $a = new Foo;
         $b = new Foo;
 
-        $result = $this->container->make(Collector::class, array('foos' => array($a, $b)));
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Collector', array('foos' => array($a, $b)));
 
         $this->assertSame(array($a, $b), $result->foos);
     }

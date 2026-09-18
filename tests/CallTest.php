@@ -27,7 +27,7 @@ class CallTest extends TestCase
     {
         $singleton = new Counter;
 
-        $this->container->instance(Counter::class, $singleton);
+        $this->container->instance('Wilkques\Container\Tests\Fixtures\Counter', $singleton);
 
         $countBeforeCall = Counter::$count;
 
@@ -36,7 +36,7 @@ class CallTest extends TestCase
         $hash = $this->container->call(array($passed, 'whoAmI'));
 
         $this->assertSame($passed->whoAmI(), $hash);
-        $this->assertSame($singleton, $this->container->make(Counter::class));
+        $this->assertSame($singleton, $this->container->make('Wilkques\Container\Tests\Fixtures\Counter'));
         $this->assertSame($countBeforeCall + 1, Counter::$count, 'only $passed should have been constructed by the test itself, call() must not construct another');
     }
 
@@ -45,7 +45,7 @@ class CallTest extends TestCase
     {
         $before = Counter::$count;
 
-        $result = $this->container->call(array(Counter::class, 'staticWhoAmI'));
+        $result = $this->container->call(array('Wilkques\Container\Tests\Fixtures\Counter', 'staticWhoAmI'));
 
         $this->assertSame('static-result', $result);
         $this->assertSame($before, Counter::$count, 'calling a static method must not construct a Counter instance');
@@ -54,7 +54,7 @@ class CallTest extends TestCase
     /** N5: 'Class@method' string form. */
     public function testCallAtSignStringForm()
     {
-        $result = $this->container->call(Counter::class . '@staticWhoAmI');
+        $result = $this->container->call('Wilkques\Container\Tests\Fixtures\Counter' . '@staticWhoAmI');
 
         $this->assertSame('static-result', $result);
     }
@@ -62,7 +62,7 @@ class CallTest extends TestCase
     /** N5: 'Class::method' string form. */
     public function testCallDoubleColonStringForm()
     {
-        $result = $this->container->call(Counter::class . '::staticWhoAmI');
+        $result = $this->container->call('Wilkques\Container\Tests\Fixtures\Counter' . '::staticWhoAmI');
 
         $this->assertSame('static-result', $result);
     }
@@ -73,7 +73,7 @@ class CallTest extends TestCase
             return $dep;
         });
 
-        $this->assertInstanceOf(Dep::class, $result);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Dep', $result);
     }
 
     public function testInvokableObjectIsCallable()

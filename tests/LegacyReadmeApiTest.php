@@ -38,9 +38,9 @@ class LegacyReadmeApiTest extends TestCase
     {
         $instance = new Dep;
 
-        $this->container->register(Dep::class, $instance);
+        $this->container->register('Wilkques\Container\Tests\Fixtures\Dep', $instance);
 
-        $this->assertSame($instance, $this->container->get(Dep::class));
+        $this->assertSame($instance, $this->container->get('Wilkques\Container\Tests\Fixtures\Dep'));
     }
 
     public function testRegisterBatch()
@@ -168,7 +168,7 @@ class LegacyReadmeApiTest extends TestCase
     public function testCallWithClassNameAndMethodName()
     {
         $result = $this->container->call(
-            array(Dep::class, 'describe'),
+            array('Wilkques\Container\Tests\Fixtures\Dep', 'describe'),
             array('label' => 'hi')
         );
 
@@ -193,7 +193,7 @@ class LegacyReadmeApiTest extends TestCase
             return $abstract;
         });
 
-        $this->assertInstanceOf(Dep::class, $result);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Dep', $result);
     }
 
     /**

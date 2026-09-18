@@ -15,9 +15,9 @@ class ContextualBindingTest extends TestCase
     /** Baseline (already-working) contextual binding by parameter name. */
     public function testContextualBindingByParamName()
     {
-        $this->container->when(Partial::class)->needs('$b')->give(138);
+        $this->container->when('Wilkques\Container\Tests\Fixtures\Partial')->needs('$b')->give(138);
 
-        $result = $this->container->make(Partial::class);
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Partial');
 
         $this->assertSame(138, $result->b);
     }
@@ -32,9 +32,9 @@ class ContextualBindingTest extends TestCase
     {
         $specific = new Dep;
 
-        $this->container->when(Partial::class)->needs(Dep::class)->give($specific);
+        $this->container->when('Wilkques\Container\Tests\Fixtures\Partial')->needs('Wilkques\Container\Tests\Fixtures\Dep')->give($specific);
 
-        $result = $this->container->make(Partial::class, array('b' => 'ignored-here'));
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Partial', array('b' => 'ignored-here'));
 
         $this->assertSame($specific, $result->a);
     }
@@ -46,9 +46,9 @@ class ContextualBindingTest extends TestCase
      */
     public function testContextualGiveNull()
     {
-        $this->container->when(Partial::class)->needs('$b')->give(null);
+        $this->container->when('Wilkques\Container\Tests\Fixtures\Partial')->needs('$b')->give(null);
 
-        $result = $this->container->make(Partial::class);
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Partial');
 
         $this->assertNull($result->b);
     }
@@ -56,9 +56,9 @@ class ContextualBindingTest extends TestCase
     /** N3: give(0) must be honoured. */
     public function testContextualGiveZero()
     {
-        $this->container->when(Partial::class)->needs('$b')->give(0);
+        $this->container->when('Wilkques\Container\Tests\Fixtures\Partial')->needs('$b')->give(0);
 
-        $result = $this->container->make(Partial::class);
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Partial');
 
         $this->assertSame(0, $result->b);
     }
@@ -66,9 +66,9 @@ class ContextualBindingTest extends TestCase
     /** N3: give('') must be honoured. */
     public function testContextualGiveEmptyString()
     {
-        $this->container->when(Partial::class)->needs('$b')->give('');
+        $this->container->when('Wilkques\Container\Tests\Fixtures\Partial')->needs('$b')->give('');
 
-        $result = $this->container->make(Partial::class);
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Partial');
 
         $this->assertSame('', $result->b);
     }
@@ -76,12 +76,12 @@ class ContextualBindingTest extends TestCase
     /** give(SomeClass::class) resolves the class through the container. */
     public function testContextualGiveClassNameResolvesTheClass()
     {
-        $this->container->bind(ContractInterface::class, ConcreteImplementation::class);
+        $this->container->bind('Wilkques\Container\Tests\Fixtures\ContractInterface', 'Wilkques\Container\Tests\Fixtures\ConcreteImplementation');
 
-        $this->container->when(Partial::class)->needs('$b')->give(ContractInterface::class);
+        $this->container->when('Wilkques\Container\Tests\Fixtures\Partial')->needs('$b')->give('Wilkques\Container\Tests\Fixtures\ContractInterface');
 
-        $result = $this->container->make(Partial::class);
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Partial');
 
-        $this->assertInstanceOf(ConcreteImplementation::class, $result->b);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\ConcreteImplementation', $result->b);
     }
 }

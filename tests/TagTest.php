@@ -28,7 +28,7 @@ class TagTest extends TestCase
         $this->assertCount(2, $tagged);
 
         foreach ($tagged as $item) {
-            $this->assertInstanceOf(Dep::class, $item);
+            $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Dep', $item);
         }
     }
 

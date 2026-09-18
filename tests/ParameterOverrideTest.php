@@ -13,17 +13,17 @@ class ParameterOverrideTest extends TestCase
     /** The headline case: positional override for the 2nd ctor param, 1st still autowired. */
     public function testPositionalOverrideLeavesOtherParamsAutowired()
     {
-        $result = $this->container->make(Partial::class, array(1 => 'bee'));
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Partial', array(1 => 'bee'));
 
-        $this->assertInstanceOf(Dep::class, $result->a);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Dep', $result->a);
         $this->assertSame('bee', $result->b);
     }
 
     public function testNamedOnlyOverride()
     {
-        $result = $this->container->make(Partial::class, array('b' => 'bee'));
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Partial', array('b' => 'bee'));
 
-        $this->assertInstanceOf(Dep::class, $result->a);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Dep', $result->a);
         $this->assertSame('bee', $result->b);
     }
 
@@ -31,7 +31,7 @@ class ParameterOverrideTest extends TestCase
     {
         $dep = new Dep;
 
-        $result = $this->container->make(Partial::class, array(0 => $dep, 'b' => 'bee'));
+        $result = $this->container->make('Wilkques\Container\Tests\Fixtures\Partial', array(0 => $dep, 'b' => 'bee'));
 
         $this->assertSame($dep, $result->a);
         $this->assertSame('bee', $result->b);
@@ -46,8 +46,8 @@ class ParameterOverrideTest extends TestCase
      */
     public function testUnknownOverrideKeyIsIgnored()
     {
-        $this->expectException(\Wilkques\Container\Exceptions\BindingResolutionException::class);
+        $this->expectExceptionCompat('Wilkques\Container\Exceptions\BindingResolutionException');
 
-        $this->container->make(Partial::class, array('nonexistent' => 'nope'));
+        $this->container->make('Wilkques\Container\Tests\Fixtures\Partial', array('nonexistent' => 'nope'));
     }
 }

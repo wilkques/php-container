@@ -60,17 +60,17 @@ class BindingTest extends TestCase
             return new Dep;
         });
 
-        $this->assertInstanceOf(Dep::class, $this->container->make('A'));
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Dep', $this->container->make('A'));
     }
 
     /** A3: interface bound to a concrete class resolves to that concrete class. */
     public function testInterfaceBoundToConcreteResolves()
     {
-        $this->container->bind(ContractInterface::class, ConcreteImplementation::class);
+        $this->container->bind('Wilkques\Container\Tests\Fixtures\ContractInterface', 'Wilkques\Container\Tests\Fixtures\ConcreteImplementation');
 
-        $resolved = $this->container->make(ContractInterface::class);
+        $resolved = $this->container->make('Wilkques\Container\Tests\Fixtures\ContractInterface');
 
-        $this->assertInstanceOf(ConcreteImplementation::class, $resolved);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\ConcreteImplementation', $resolved);
     }
 
     /** A3: a class type-hinting the interface receives the bound concrete implementation. */
@@ -80,22 +80,22 @@ class BindingTest extends TestCase
             $this->markTestSkipped('Fixtures\\Php71\\NullableInterfaceCollaborator uses a nullable class type hint, which requires PHP 7.1');
         }
 
-        $this->container->bind(ContractInterface::class, ConcreteImplementation::class);
+        $this->container->bind('Wilkques\Container\Tests\Fixtures\ContractInterface', 'Wilkques\Container\Tests\Fixtures\ConcreteImplementation');
 
-        $resolved = $this->container->make(\Wilkques\Container\Tests\Fixtures\Php71\NullableInterfaceCollaborator::class);
+        $resolved = $this->container->make('Wilkques\Container\Tests\Fixtures\Php71\NullableInterfaceCollaborator');
 
-        $this->assertInstanceOf(ConcreteImplementation::class, $resolved->dep);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\ConcreteImplementation', $resolved->dep);
     }
 
     /** A3: bind(Iface, NestedImpl) where NestedImpl itself has a ctor dependency resolves recursively. */
     public function testInterfaceBoundToImplementationWithItsOwnDependencyResolvesRecursively()
     {
-        $this->container->bind(ContractInterface::class, NestedImpl::class);
+        $this->container->bind('Wilkques\Container\Tests\Fixtures\ContractInterface', 'Wilkques\Container\Tests\Fixtures\NestedImpl');
 
-        $resolved = $this->container->make(ContractInterface::class);
+        $resolved = $this->container->make('Wilkques\Container\Tests\Fixtures\ContractInterface');
 
-        $this->assertInstanceOf(NestedImpl::class, $resolved);
-        $this->assertInstanceOf(Dep::class, $resolved->dep);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\NestedImpl', $resolved);
+        $this->assertInstanceOf('Wilkques\Container\Tests\Fixtures\Dep', $resolved->dep);
     }
 
     /** B5: binding an invokable object as the concrete must not call it during bind(). */

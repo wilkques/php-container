@@ -60,13 +60,13 @@ abstract class TestCase extends BaseTestCase
      */
     protected function resetContainerSingleton()
     {
-        if (method_exists(Container::class, 'setInstance')) {
+        if (method_exists('Wilkques\Container\Container', 'setInstance')) {
             Container::setInstance(null);
 
             return;
         }
 
-        $reflection = new \ReflectionClass(Container::class);
+        $reflection = new \ReflectionClass('Wilkques\Container\Container');
 
         $property = $reflection->getProperty('instance');
         $property->setAccessible(true);
@@ -147,6 +147,29 @@ abstract class TestCase extends BaseTestCase
      *
      * @return void
      */
+    /**
+     * @param string $class
+     *
+     * @return void
+     */
+    protected function expectExceptionCompat($class)
+    {
+        if (method_exists($this, 'expectException')) {
+            // PHPUnit >= 5.2
+            $this->expectException($class);
+
+            return;
+        }
+
+        // PHPUnit 4.x: no expectException() at all.
+        $this->setExpectedException($class);
+    }
+
+    /**
+     * @param string $regex
+     *
+     * @return void
+     */
     protected function expectExceptionMessageMatchesCompat($regex)
     {
         if (method_exists($this, 'expectExceptionMessageMatches')) {
@@ -156,8 +179,17 @@ abstract class TestCase extends BaseTestCase
             return;
         }
 
-        // PHPUnit < 8.4, renamed from expectExceptionMessageRegExp().
-        $this->expectExceptionMessageRegExp($regex);
+        if (method_exists($this, 'expectExceptionMessageRegExp')) {
+            // PHPUnit 5.2 - 8.3, renamed from expectExceptionMessageRegExp().
+            $this->expectExceptionMessageRegExp($regex);
+
+            return;
+        }
+
+        // PHPUnit 4.x: no separate expectException*() calls at all — the
+        // exception class (set by a prior expectExceptionCompat() call)
+        // and the message regex must be given together in one call.
+        $this->setExpectedExceptionRegExp($this->getExpectedException(), $regex);
     }
 
     /**
